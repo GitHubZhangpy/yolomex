@@ -8,11 +8,13 @@ yolomex is a simple Matlab MEX wrapper for YOLO (based on pyyolo by thomaspark-p
 
 ## Compile yolomex
 From Matlab: 
-1. mex -I"./darknet/include/" -L"." -lyolo yolomex.c
+```bash
+mex -I"./darknet/include/" -L"." -lyolo yolomex.c
+```
 
 ## Test
 From Matlab: 
-
+```bash
 datacfg = 'cfg/coco.data'
 cfgfile = 'cfg/tiny-yolo.cfg'
 weightfile = '../tiny-yolo.weights'
@@ -26,4 +28,4 @@ yolomex('init',datacfg,cfgfile,weightfile)
 detections=yolomex('test',filename,thresh,hier_thresh)    
 
 detections=yolomex('detect',I,thresh,hier_thresh)  
-
+```
