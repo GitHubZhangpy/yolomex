@@ -2,8 +2,8 @@
 yolomex is a simple Matlab MEX wrapper for YOLO (based on pyyolo by thomaspark-pkj).
 
 ## Building libyolo
-1. git clone --recursive https://github.com/thomaspark-pkj/pyyolo.git
-2. (optional) Set GPU=1 and CUDNN=1 in Makefile to use GPU.
+1. git clone --recursive https://github.com/ignacio-rocco/yolomex.git
+2. (TODO) Set GPU=1 and CUDNN=1 in Makefile to use GPU.
 3. make
 
 ## Compile yolomex
