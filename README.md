@@ -3,13 +3,17 @@ yolomex is a simple Matlab MEX wrapper for YOLO (based on pyyolo by thomaspark-p
 
 ## Building libyolo
 1. git clone --recursive https://github.com/ignacio-rocco/yolomex.git
-2. (TODO) Set GPU=1 and CUDNN=1 in Makefile to use GPU.
+2. Set GPU=1 in Makefile to use GPU and adjust CUDA include path
 3. make
 
 ## Compile yolomex
-From Matlab: 
+From Matlab (without CUDA): 
 ```bash
 mex -I"./darknet/include/" -L"." -lyolo yolomex.c
+```
+With CUDA (adjust CUDA lib path):
+```bash
+mex -I"./darknet/src" -I"./darknet/include/" CFLAGS="-Wall -Wfatal-errors -Wno-unused-result -fPIC" -L"." -lyolo -L"/usr/local/cuda-7.0/lib64" -lcudart -lcublas -lcurand yolomex.c
 ```
 
 ## Test
