@@ -15,10 +15,10 @@ mex -I"./darknet/include/" -L"." -lyolo yolomex.c
 ## Test
 From Matlab: 
 ```bash
-datacfg = 'cfg/coco.data'
-cfgfile = 'cfg/tiny-yolo.cfg'
-weightfile = '../tiny-yolo.weights'
-filename = 'data/person.jpg'
+datacfg = 'darknet/cfg/coco.data'
+cfgfile = 'darknet/cfg/tiny-yolo.cfg'
+weightfile = 'tiny-yolo.weights'
+filename = 'darknet/data/person.jpg'
 thresh = 0.24
 hier_thresh = 0.5
 I = imread(filename);
