@@ -27,19 +27,19 @@ void yolomex_init(char *datacfg,char *cfgfile, char *weightfile)
     }
 
     /* init */
-	g_handle = yolo_init(datacfg, cfgfile, weightfile);
-	if (!g_handle) {
-		mexErrMsgTxt("Initialzing YOLO failed");
-	}
+    g_handle = yolo_init(datacfg, cfgfile, weightfile);
+    if (!g_handle) {
+        mexErrMsgTxt("Initialzing YOLO failed");
+    }
 }
 
 /* Cleanup YOLO */
 void yolomex_cleanup()
 {
-	yolo_cleanup(g_handle);
-	g_handle = NULL;
+    yolo_cleanup(g_handle);
+    g_handle = NULL;
 
-	return;
+    return;
 }
 
 /* Test YOLO */
@@ -52,11 +52,11 @@ detection_info** yolomex_test(char *filename, float thresh, float hier_thresh, i
     }
 
     *num = 0;
-	detection_info **info = yolo_test(g_handle, filename, thresh, hier_thresh, num);
-	if (info == NULL) {
-        mexErrMsgTxt("Something went wrong in yolo_test c function");		
-	}
-	return info;
+    detection_info **info = yolo_test(g_handle, filename, thresh, hier_thresh, num);
+    if (info == NULL) {
+        mexErrMsgTxt("Something went wrong in yolo_test c function");       
+    }
+    return info;
 }
 
 /* Detect YOLO */
@@ -75,11 +75,11 @@ detection_info** yolomex_detect(unsigned char *data, int w, int h, int c, float 
     }
 
     *num = 0;
-	detection_info **info = yolo_detect(g_handle, im, thresh, hier_thresh, num);
-	if (info == NULL) {
-        mexErrMsgTxt("Something went wrong in yolo_detect c function");		
-	}
-	return info;
+    detection_info **info = yolo_detect(g_handle, im, thresh, hier_thresh, num);
+    if (info == NULL) {
+        mexErrMsgTxt("Something went wrong in yolo_detect c function");     
+    }
+    return info;
 }
 
 
@@ -90,7 +90,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
 {
 
     char *method;
-    // used in detect
+    /* used in detect */
     float* imageData;
     int numDimsImg;
     mwSize const * sizeImg=NULL;
@@ -143,11 +143,11 @@ void mexFunction(int nlhs, mxArray *plhs[],
         detection_info** info = yolomex_test(filename, thresh, hier_thresh, &num);
         /* copy result to a Matlab struct for returning */
 
-        //Create mxArray data structures to hold the data
-        //to be assigned for the structure. 
-        const char *fieldnames[6]; //This will hold field names.
+        /* Create mxArray data structures to hold the data */
+        /* to be assigned for the structure. */
+        const char *fieldnames[6]; /* This will hold field names. */
         int i;
-        //Assign field names
+        /* Assign field names */
         for(i = 0; i<6; i++)
             fieldnames[i] = (char*)mxMalloc(20);
         memcpy(fieldnames[0],"class",sizeof("class"));
@@ -156,13 +156,13 @@ void mexFunction(int nlhs, mxArray *plhs[],
         memcpy(fieldnames[3],"top", sizeof("top"));
         memcpy(fieldnames[4],"bottom", sizeof("bottom"));
         memcpy(fieldnames[5],"prob", sizeof("prob"));
-        //Allocate memory for the structure
+        /* Allocate memory for the structure */
         plhs[0] = mxCreateStructMatrix(1,num,6,fieldnames);
-        //Deallocate memory for the fieldnames
+        /* Deallocate memory for the fieldnames */
         for(i = 0; i<6; i++)
             mxFree( fieldnames[i] );
-        //Assign the field values
-	    for (i = 0; i < num; i++) {
+        /* Assign the field values */
+        for (i = 0; i < num; i++) {
             printf("class: %s, ", info[i]->name);
             printf("left: %d, ", info[i]->left);            
             printf("right: %d, ", info[i]->right);
@@ -178,52 +178,49 @@ void mexFunction(int nlhs, mxArray *plhs[],
             mxSetFieldByNumber(plhs[0],i,5, mxCreateDoubleScalar((double)info[i]->prob));
 
             free(info[i]);
-	    }
+        }
         free(info);
     }
     else if(strcmp(mxArrayToString(prhs[0]),"detect")==0){
-        // Check variables passed 
+        /* Check variables passed */
         if(nrhs != 4){
             mexErrMsgTxt("Detect parameters: uint8 matrix (image), double thresh, double hier_thresh");
         }
         if(nlhs != 1) {
             mexErrMsgTxt("One output required for detect method");
         }
-        // input must be a string 
+        /* input must be a string */
         if ( mxIsUint8(prhs[1]) != 1 || mxIsDouble(prhs[2]) != 1 || mxIsDouble(prhs[3]) != 1)
             mexErrMsgTxt("Detect parameters: uint8 matrix (image), double thresh, double hier_thresh");
-        // get image 
+        /* get image */
         imageData = (unsigned char*)mxGetData(prhs[1]);        
         numDimsImg = mxGetNumberOfDimensions(prhs[1]);    
         sizeImg = mxGetDimensions(prhs[1]);
 
-        //if (numDimsImg != 3)
-        //    mexErrMsgTxt("Image is not RGB (n x m x 3)");
+        if (numDimsImg != 3)
+            mexErrMsgTxt("Image is not RGB (n x m x 3)");
 
         h = sizeImg[0];
         w = sizeImg[1];
         c = sizeImg[2];
-        //c = 1;
-        //h = 424;
-        //w = 640;
 
         printf("h: %d, ", h);    
         printf("w: %d, ", w);    
         printf("c: %d, ", c);    
-        // get numeric parameters 
+        /* get numeric parameters */
         float thresh = (float)mxGetScalar(prhs[2]);        
         float hier_thresh = (float)mxGetScalar(prhs[3]);  
 
-        // run 
+        /* run */
         int num;      
         detection_info** info = yolomex_detect(imageData, w, h, c, thresh, hier_thresh, &num);
-        // copy result to a Matlab struct for returning 
+        /* copy result to a Matlab struct for returning */
 
-        //Create mxArray data structures to hold the data
-        //to be assigned for the structure. 
-        const char *fieldnames[6]; //This will hold field names.
+        /* Create mxArray data structures to hold the data */
+        /* to be assigned for the structure. */
+        const char *fieldnames[6]; /* This will hold field names. */
         int i;
-        //Assign field names
+        /* Assign field names */ 
         for(i = 0; i<6; i++)
             fieldnames[i] = (char*)mxMalloc(20);
         memcpy(fieldnames[0],"class",sizeof("class"));
@@ -232,13 +229,13 @@ void mexFunction(int nlhs, mxArray *plhs[],
         memcpy(fieldnames[3],"top", sizeof("top"));
         memcpy(fieldnames[4],"bottom", sizeof("bottom"));
         memcpy(fieldnames[5],"prob", sizeof("prob"));
-        //Allocate memory for the structure
+        /* Allocate memory for the structure */
         plhs[0] = mxCreateStructMatrix(1,num,6,fieldnames);
-        //Deallocate memory for the fieldnames
+        /* Deallocate memory for the fieldnames */
         for(i = 0; i<6; i++)
             mxFree( fieldnames[i] );
-        //Assign the field values
-	    for (i = 0; i < num; i++) {
+        /* Assign the field values */
+        for (i = 0; i < num; i++) {
             printf("class: %s, ", info[i]->name);
             printf("left: %d, ", info[i]->left);            
             printf("right: %d, ", info[i]->right);
@@ -254,7 +251,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
             mxSetFieldByNumber(plhs[0],i,5, mxCreateDoubleScalar((double)info[i]->prob));
 
             free(info[i]);
-	    }
+        }
         free(info);
         
 
@@ -264,6 +261,3 @@ void mexFunction(int nlhs, mxArray *plhs[],
     }
         
 }
-
-
-
