@@ -16,7 +16,7 @@ With CUDA (adjust CUDA lib path):
 mex -I"./darknet/src" -I"./darknet/include/" CFLAGS="-Wall -Wfatal-errors -Wno-unused-result -fPIC" -L"." -lyolo -L"/usr/local/cuda-7.0/lib64" -lcudart -lcublas -lcurand yolomex.c
 ```
 
-## Test
+## Test object recognition
 From Matlab: 
 ```bash
 datacfg = fullfile(pwd,'darknet/cfg/coco.data');
@@ -32,4 +32,21 @@ yolomex('init',datacfg,cfgfile,weightfile)
 detections=yolomex('test',filename,thresh,hier_thresh)    
 
 detections=yolomex('detect',I,thresh,hier_thresh)  
+```
+
+## Test face recognition
+1. Download model into facerec folder using download_model.sh
+2. From Matlab: 
+```bash
+namefile = fullfile(pwd,'facerec/fddb.names');
+cfgfile = fullfile(pwd,'facerec/yolo-fddb.cfg');
+weightfile = fullfile(pwd,'facerec/yolo-fddb_v2.weights');
+filename = fullfile(pwd,'facerec/france.jpg');
+thresh = 0.24;
+hier_thresh = 0.5;
+I = imread(filename);
+
+yolomex('init_name',namefile,cfgfile,weightfile)
+
+detections=yolomex('detect',I,thresh,hier_thresh)  
 ```
