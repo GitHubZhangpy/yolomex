@@ -1,0 +1,6 @@
+classes= 1
+train  = facerec/trainCleaned.txt
+valid  = facerec/test.txt
+names = /sequoia/data1/iroccosp/otherWork/yolomex/facerec/fddb.names
+backup = backup
+

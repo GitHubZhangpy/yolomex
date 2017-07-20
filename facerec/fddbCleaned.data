@@ -1,6 +1,0 @@
-classes= 1
-train  = data/fddb/trainCleaned.txt
-valid  = data/fddb/test.txt
-names = data/fddb.names
-backup = backup
-
