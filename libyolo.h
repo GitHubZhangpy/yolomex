@@ -13,7 +13,7 @@ typedef struct {
 	float prob;
 } detection_info;
 
-yolo_handle yolo_init(char *datacfg, char *cfgfile, char *weightfile);
+yolo_handle yolo_init(char *datacfg, char *cfgfile, char *weightfile, int initMode);
 void yolo_cleanup(yolo_handle handle);
 detection_info **yolo_detect(yolo_handle handle, image im, float thresh, float hier_thresh, int *num);
 detection_info **yolo_test(yolo_handle handle, char *filename, float thresh, float hier_thresh, int *num);

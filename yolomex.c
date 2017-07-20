@@ -8,7 +8,7 @@
 static yolo_handle g_handle = NULL;
 
 /* Init YOLO */
-void yolomex_init(char *datacfg,char *cfgfile, char *weightfile)
+void yolomex_init(char *datacfg,char *cfgfile, char *weightfile, int initMode)
 {
     /* check existance of files */
     if( access( datacfg, F_OK ) == -1 ) {
@@ -27,7 +27,7 @@ void yolomex_init(char *datacfg,char *cfgfile, char *weightfile)
     }
 
     /* init */
-    g_handle = yolo_init(datacfg, cfgfile, weightfile);
+    g_handle = yolo_init(datacfg, cfgfile, weightfile, initMode);
     if (!g_handle) {
         mexErrMsgTxt("Initialzing YOLO failed");
     }
@@ -156,17 +156,33 @@ void mexFunction(int nlhs, mxArray *plhs[],
     /* Check method requested */
     if(strcmp(mxArrayToString(prhs[0]),"init")==0){
         /* Check variables passed */
-        if(nrhs != 4){
+        if(nrhs!=4){
             mexErrMsgTxt("Init parameters: string datacfg, string cfgfile, string weightfile");
         }
         /* input must be a string */
         if ( mxIsChar(prhs[1]) != 1 || mxIsChar(prhs[2]) != 1 || mxIsChar(prhs[3]) != 1)
-          mexErrMsgTxt("Inputs to init method must be strings: char *datacfg,char *cfgfile, char *weightfile");
+            mexErrMsgTxt("Init parameters: string datacfg, string cfgfile, string weightfile");
         /* copy the string data from prhs[1-3] into a C string */
         char *datacfg = mxArrayToString(prhs[1]);
         char *cfgfile = mxArrayToString(prhs[2]);
         char *weightfile = mxArrayToString(prhs[3]);
-        yolomex_init(datacfg,cfgfile,weightfile);
+        int init_mode=0;
+        yolomex_init(datacfg,cfgfile,weightfile,init_mode);
+    }
+    else if(strcmp(mxArrayToString(prhs[0]),"init_name")==0){
+        /* Check variables passed */
+        if(nrhs!=4){
+            mexErrMsgTxt("Init parameters: string namefile, string cfgfile, string weightfile");
+        }
+        /* input must be a string */
+        if ( mxIsChar(prhs[1]) != 1 || mxIsChar(prhs[2]) != 1 || mxIsChar(prhs[3]) != 1)
+            mexErrMsgTxt("Init parameters: string namefile, string cfgfile, string weightfile");
+        /* copy the string data from prhs[1-3] into a C string */
+        char *datacfg = mxArrayToString(prhs[1]);
+        char *cfgfile = mxArrayToString(prhs[2]);
+        char *weightfile = mxArrayToString(prhs[3]);
+        int init_mode=1;
+        yolomex_init(datacfg,cfgfile,weightfile,init_mode);
     }
     else if(strcmp(mxArrayToString(prhs[0]),"cleanup")==0){
         /* Check variables passed */

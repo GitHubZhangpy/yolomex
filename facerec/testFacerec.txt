@@ -1,13 +1,11 @@
-datacfg = fullfile(pwd,'facerec/fddb.data');
+namefile = fullfile(pwd,'facerec/fddb.names');
 cfgfile = fullfile(pwd,'facerec/yolo-fddb.cfg');
 weightfile = fullfile(pwd,'facerec/yolo-fddb_v2.weights');
-filename = fullfile(pwd,'darknet/data/france.jpg');
+filename = fullfile(pwd,'facerec/france.jpg');
 thresh = 0.24;
 hier_thresh = 0.5;
 I = imread(filename);
 
-yolomex('init',datacfg,cfgfile,weightfile)
-
-detections=yolomex('test',filename,thresh,hier_thresh)    
+yolomex('init_name',namefile,cfgfile,weightfile)
 
 detections=yolomex('detect',I,thresh,hier_thresh)  
