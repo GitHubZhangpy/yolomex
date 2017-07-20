@@ -31,6 +31,7 @@ void yolomex_init(char *datacfg,char *cfgfile, char *weightfile)
     if (!g_handle) {
         mexErrMsgTxt("Initialzing YOLO failed");
     }
+    return;
 }
 
 /* Cleanup YOLO */
@@ -45,6 +46,10 @@ void yolomex_cleanup()
 /* Test YOLO */
 detection_info** yolomex_test(char *filename, float thresh, float hier_thresh, int* num)
 {
+    /* check init */
+    if (!g_handle)
+        mexErrMsgTxt("Run init first");
+    
      /* check existance of files */
     if( access( filename, F_OK ) == -1 ) {
         printf("File %s\n not found", filename);
@@ -62,6 +67,10 @@ detection_info** yolomex_test(char *filename, float thresh, float hier_thresh, i
 /* Detect YOLO */
 detection_info** yolomex_detect(unsigned char *data, int w, int h, int c, float thresh, float hier_thresh, int* num)
 {
+    /* check init */
+    if (!g_handle)
+        mexErrMsgTxt("Run init first");
+    
     int i,j,k;
     image im = make_image(w, h, c);
     for(k = 0; k < c; ++k){
@@ -76,19 +85,63 @@ detection_info** yolomex_detect(unsigned char *data, int w, int h, int c, float 
 
     *num = 0;
     detection_info **info = yolo_detect(g_handle, im, thresh, hier_thresh, num);
+    
+    free_image(im);
+    
     if (info == NULL) {
         mexErrMsgTxt("Something went wrong in yolo_detect c function");     
     }
     return info;
 }
 
+/* Result parsing function */
+void infoToMatlabStruct(detection_info** info, int num, mxArray *plhs[])
+{
+    /* Create mxArray data structures to hold the data */
+    /* to be assigned for the structure. */
+    const char *fieldnames[6]; /* This will hold field names. */
+    int i;
+    /* Assign field names */
+    for(i = 0; i<6; i++)
+    fieldnames[i] = (char*)mxMalloc(20);
+    memcpy(fieldnames[0],"class",sizeof("class"));
+    memcpy(fieldnames[1],"left", sizeof("left"));
+    memcpy(fieldnames[2],"right", sizeof("right"));
+    memcpy(fieldnames[3],"top", sizeof("top"));
+    memcpy(fieldnames[4],"bottom", sizeof("bottom"));
+    memcpy(fieldnames[5],"prob", sizeof("prob"));
+    /* Allocate memory for the structure */
+    plhs[0] = mxCreateStructMatrix(1,num,6,fieldnames);
+    /* Deallocate memory for the fieldnames */
+    for(i = 0; i<6; i++)
+    mxFree( fieldnames[i] );
+    /* Assign the field values */
+    for (i = 0; i < num; i++) {
+        printf("class: %s, ", info[i]->name);
+        printf("left: %d, ", info[i]->left);
+        printf("right: %d, ", info[i]->right);
+        printf("top: %d, ", info[i]->top);
+        printf("bottom: %d, ", info[i]->bottom);
+        printf("prob: %f\n", info[i]->prob);
+        
+        mxSetFieldByNumber(plhs[0],i,0, mxCreateString(info[i]->name));
+        mxSetFieldByNumber(plhs[0],i,1, mxCreateDoubleScalar((double)info[i]->left));
+        mxSetFieldByNumber(plhs[0],i,2, mxCreateDoubleScalar((double)info[i]->right));
+        mxSetFieldByNumber(plhs[0],i,3, mxCreateDoubleScalar((double)info[i]->top));
+        mxSetFieldByNumber(plhs[0],i,4, mxCreateDoubleScalar((double)info[i]->bottom));
+        mxSetFieldByNumber(plhs[0],i,5, mxCreateDoubleScalar((double)info[i]->prob));
+        
+        free(info[i]);
+    }
+    free(info);
+    return;
+}
 
 
 /* The gateway function */
 void mexFunction(int nlhs, mxArray *plhs[],
                  int nrhs, const mxArray *prhs[])
 {
-
     char *method;
     /* used in detect */
     float* imageData;
@@ -142,44 +195,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
         int num;      
         detection_info** info = yolomex_test(filename, thresh, hier_thresh, &num);
         /* copy result to a Matlab struct for returning */
-
-        /* Create mxArray data structures to hold the data */
-        /* to be assigned for the structure. */
-        const char *fieldnames[6]; /* This will hold field names. */
-        int i;
-        /* Assign field names */
-        for(i = 0; i<6; i++)
-            fieldnames[i] = (char*)mxMalloc(20);
-        memcpy(fieldnames[0],"class",sizeof("class"));
-        memcpy(fieldnames[1],"left", sizeof("left"));
-        memcpy(fieldnames[2],"right", sizeof("right"));
-        memcpy(fieldnames[3],"top", sizeof("top"));
-        memcpy(fieldnames[4],"bottom", sizeof("bottom"));
-        memcpy(fieldnames[5],"prob", sizeof("prob"));
-        /* Allocate memory for the structure */
-        plhs[0] = mxCreateStructMatrix(1,num,6,fieldnames);
-        /* Deallocate memory for the fieldnames */
-        for(i = 0; i<6; i++)
-            mxFree( fieldnames[i] );
-        /* Assign the field values */
-        for (i = 0; i < num; i++) {
-            printf("class: %s, ", info[i]->name);
-            printf("left: %d, ", info[i]->left);            
-            printf("right: %d, ", info[i]->right);
-            printf("top: %d, ", info[i]->top);
-            printf("bottom: %d, ", info[i]->bottom);
-            printf("prob: %f\n", info[i]->prob);
-
-            mxSetFieldByNumber(plhs[0],i,0, mxCreateString(info[i]->name));
-            mxSetFieldByNumber(plhs[0],i,1, mxCreateDoubleScalar((double)info[i]->left));
-            mxSetFieldByNumber(plhs[0],i,2, mxCreateDoubleScalar((double)info[i]->right));
-            mxSetFieldByNumber(plhs[0],i,3, mxCreateDoubleScalar((double)info[i]->top));
-            mxSetFieldByNumber(plhs[0],i,4, mxCreateDoubleScalar((double)info[i]->bottom));
-            mxSetFieldByNumber(plhs[0],i,5, mxCreateDoubleScalar((double)info[i]->prob));
-
-            free(info[i]);
-        }
-        free(info);
+        infoToMatlabStruct(info, num, plhs);
     }
     else if(strcmp(mxArrayToString(prhs[0]),"detect")==0){
         /* Check variables passed */
@@ -215,49 +231,10 @@ void mexFunction(int nlhs, mxArray *plhs[],
         int num;      
         detection_info** info = yolomex_detect(imageData, w, h, c, thresh, hier_thresh, &num);
         /* copy result to a Matlab struct for returning */
-
-        /* Create mxArray data structures to hold the data */
-        /* to be assigned for the structure. */
-        const char *fieldnames[6]; /* This will hold field names. */
-        int i;
-        /* Assign field names */ 
-        for(i = 0; i<6; i++)
-            fieldnames[i] = (char*)mxMalloc(20);
-        memcpy(fieldnames[0],"class",sizeof("class"));
-        memcpy(fieldnames[1],"left", sizeof("left"));
-        memcpy(fieldnames[2],"right", sizeof("right"));
-        memcpy(fieldnames[3],"top", sizeof("top"));
-        memcpy(fieldnames[4],"bottom", sizeof("bottom"));
-        memcpy(fieldnames[5],"prob", sizeof("prob"));
-        /* Allocate memory for the structure */
-        plhs[0] = mxCreateStructMatrix(1,num,6,fieldnames);
-        /* Deallocate memory for the fieldnames */
-        for(i = 0; i<6; i++)
-            mxFree( fieldnames[i] );
-        /* Assign the field values */
-        for (i = 0; i < num; i++) {
-            printf("class: %s, ", info[i]->name);
-            printf("left: %d, ", info[i]->left);            
-            printf("right: %d, ", info[i]->right);
-            printf("top: %d, ", info[i]->top);
-            printf("bottom: %d, ", info[i]->bottom);
-            printf("prob: %f\n", info[i]->prob);
-
-            mxSetFieldByNumber(plhs[0],i,0, mxCreateString(info[i]->name));
-            mxSetFieldByNumber(plhs[0],i,1, mxCreateDoubleScalar((double)info[i]->left));
-            mxSetFieldByNumber(plhs[0],i,2, mxCreateDoubleScalar((double)info[i]->right));
-            mxSetFieldByNumber(plhs[0],i,3, mxCreateDoubleScalar((double)info[i]->top));
-            mxSetFieldByNumber(plhs[0],i,4, mxCreateDoubleScalar((double)info[i]->bottom));
-            mxSetFieldByNumber(plhs[0],i,5, mxCreateDoubleScalar((double)info[i]->prob));
-
-            free(info[i]);
-        }
-        free(info);
-        
-
+        infoToMatlabStruct(info, num, plhs);
     }
     else {
         mexErrMsgTxt("First input should specify method");
     }
-        
+    return;    
 }
