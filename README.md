@@ -1,7 +1,7 @@
 # yolomex
 yolomex is a simple Matlab MEX wrapper for object recognition with YOLO (based on pyyolo by thomaspark-pkj).
 
-![](http://www.di.ens.fr/willow/research/cnngeometric/images/yolomex.png)
+![](http://www.di.ens.fr/~iroccosp/images/yolomex.png)
 
 ## Building libyolo
 1. git clone --recursive https://github.com/ignacio-rocco/yolomex.git
